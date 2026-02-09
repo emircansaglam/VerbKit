@@ -209,3 +209,26 @@ extension Color {
         )
     }
 }
+
+extension DesignSystem {
+    struct TabBar {
+        // Icon sizes
+        static let iconSize: CGFloat = 20
+        static let iconBackgroundSize: CGFloat = 50
+        
+        // Spacing
+        static let iconLabelSpacing: CGFloat = 4
+        
+        // Opacity
+        static let unselectedOpacity: Double = 0.6
+        static let selectedBackgroundOpacity: Double = 0.15
+        
+        // Scale
+        static let selectedIconScale: CGFloat = 1.1
+        static let unselectedIconScale: CGFloat = 1.0
+        
+        // Animation
+        static let springDuration: Double = 0.4
+        static let springBounce: Double = 0.3
+    }
+}

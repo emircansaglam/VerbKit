@@ -1,11 +1,3 @@
-//
-//  SplashView.swift
-//  VerbKit
-//
-//  Created by emircan.saglam on 8.02.2026.
-//
-
-// Core/Splash/SplashView.swift
 import SwiftUI
 
 struct SplashView: View {
@@ -80,12 +72,11 @@ struct SplashView: View {
                 Spacer()
                     .frame(height: DesignSystem.Spacing.xxxl)
             }
-            .paddingLarge()
+            .padding(DesignSystem.Spacing.lg)
         }
         .onAppear {
             isAnimating = true
             
-            // Navigate to main app after delay
             DispatchQueue.main.asyncAfter(
                 deadline: .now() + DesignSystem.Animation.splashDelay
             ) {
