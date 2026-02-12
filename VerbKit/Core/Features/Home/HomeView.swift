@@ -8,26 +8,93 @@
 import SwiftUI
 
 struct HomeView: View {
+    @StateObject private var viewModel = HomeViewModel()
+    
     var body: some View {
         NavigationStack {
             ZStack {
                 DesignSystem.Colors.background
                     .ignoresSafeArea()
                 
-                VStack(spacing: DesignSystem.Spacing.lg) {
-                    Image("fish-mascot")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 120, height: 120)
-                    
-                    Text("Welcome to VerbKit!")
-                        .font(DesignSystem.Typography.title)
-                        .foregroundStyle(DesignSystem.Colors.primaryGradient)
+                ScrollView {
+                    VStack(spacing: DesignSystem.Spacing.lg) {
+                        greetingSection
+                        dailyGoalCard
+                        continueLearningSection
+                        categoriesSection
+                        mascotTipSection
+                    }
+                    .padding(.horizontal, DesignSystem.Spacing.screenEdge)
+                    .padding(.bottom, 80)
                 }
             }
-            .navigationTitle("Home")
-            .navigationBarTitleDisplayMode(.large)
+            .verbKitNavigationBar()
         }
+    }
+}
+
+// MARK: - Subviews
+private extension HomeView {
+    var greetingSection: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
+                Text(viewModel.timeBasedGreeting)
+                    .font(DesignSystem.Typography.title2)
+                    .fontWeight(.bold)
+                
+                Text(viewModel.motivationalMessage)
+                    .font(DesignSystem.Typography.subheadline)
+                    .foregroundColor(DesignSystem.Colors.textSecondary)
+            }
+            Spacer()
+        }
+        .padding(.top, DesignSystem.Spacing.md)
+    }
+    
+    var dailyGoalCard: some View {
+        DailyGoalCard(
+            currentProgress: viewModel.dailyProgress,
+            goal: viewModel.dailyGoal,
+            streak: viewModel.streak
+        )
+    }
+    
+    var continueLearningSection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            sectionHeader(title: "Continue Learning")
+            
+            if let lastCategory = viewModel.lastStudiedCategory {
+                ContinueLearningCard(category: lastCategory)
+            }
+        }
+    }
+    
+    var categoriesSection: some View {
+        VStack(alignment: .leading, spacing: DesignSystem.Spacing.md) {
+            sectionHeader(title: "Categories")
+            
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ],
+                spacing: DesignSystem.Spacing.md
+            ) {
+                ForEach(viewModel.categories) { category in
+                    CategoryCard(category: category)
+                }
+            }
+        }
+    }
+    
+    var mascotTipSection: some View {
+        MascotTipView(tip: viewModel.dailyTip)
+    }
+    
+    func sectionHeader(title: String) -> some View {
+        Text(title)
+            .font(DesignSystem.Typography.title3)
+            .fontWeight(.semibold)
     }
 }
 

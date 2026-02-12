@@ -19,7 +19,7 @@ enum TabItem: Int, CaseIterable {
         case .home: return "Home"
         case .verbs: return "Verbs"
         case .practice: return "Practice"
-        case .progress: return "Progress"
+        case .progress: return "Stats"
         case .settings: return "Settings"
         }
     }
