@@ -17,7 +17,7 @@ struct PracticeView: View {
                 Text("📚 Pactice View")
                     .font(DesignSystem.Typography.largeTitle)
             }
-            .navigationTitle("All Verbs")
+            .verbKitNavigationBar(title: "Practice")
         }
     }
 }

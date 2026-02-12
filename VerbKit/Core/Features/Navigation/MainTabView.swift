@@ -12,7 +12,11 @@ struct MainTabView: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Tab Content with swipe animations
+            // Background
+            DesignSystem.Colors.background
+                .ignoresSafeArea()
+            
+            // Tab Content
             TabView(selection: $selectedTab) {
                 HomeView()
                     .tag(TabItem.home)
@@ -35,7 +39,7 @@ struct MainTabView: View {
             CustomTabBar(selectedTab: $selectedTab)
                 .zIndex(1)
         }
-        .ignoresSafeArea(.keyboard)
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 
