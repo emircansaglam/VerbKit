@@ -6,29 +6,23 @@
 //
 
 import SwiftUI
-import Combine
 
-@MainActor
-final class HomeViewModel: ObservableObject {
-    @Published var dailyProgress: Int = 7
-    @Published var dailyGoal: Int = 10
-    @Published var streak: Int = 5
-    @Published var lastStudiedCategory: HomeCategory?
-    @Published var categories: [HomeCategory] = []
-    @Published var dailyTip: String = "Practice makes perfect! 🎯"
+@Observable
+final class HomeViewModel {
+    var dailyProgress: Int = 7
+    var dailyGoal: Int = 10
+    var streak: Int = 5
+    var lastStudiedCategory: HomeCategory?
+    var categories: [HomeCategory] = []
+    var dailyTip: String = "Practice makes perfect! 🎯"
     
     var timeBasedGreeting: String {
         let hour = Calendar.current.component(.hour, from: Date())
-        
         switch hour {
-        case 5..<12:
-            return "Good Morning! ☀️"
-        case 12..<17:
-            return "Good Afternoon! 🌤️"
-        case 17..<22:
-            return "Good Evening! 🌙"
-        default:
-            return "Still Learning? 🌟"
+        case 5..<12: return "Good Morning! ☀️"
+        case 12..<17: return "Good Afternoon! 🌤️"
+        case 17..<22: return "Good Evening! 🌙"
+        default: return "Still Learning? 🌟"
         }
     }
     
@@ -48,7 +42,6 @@ final class HomeViewModel: ObservableObject {
     }
     
     private func loadMockData() {
-        // Temporary mock data
         lastStudiedCategory = HomeCategory(
             id: "1",
             name: "Regular Verbs",
