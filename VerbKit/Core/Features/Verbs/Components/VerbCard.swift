@@ -9,7 +9,8 @@ import SwiftUI
 
 struct VerbCard: View {
     let verb: Verb
-    
+    var progress: VerbProgressRecord?
+
     var body: some View {
         cardContainer
     }
@@ -32,7 +33,7 @@ private extension VerbCard {
             y: DesignSystem.Shadow.sm.y
         )
     }
-    
+
     var cardBackground: some View {
         LinearGradient(
             colors: [
@@ -43,30 +44,30 @@ private extension VerbCard {
             endPoint: .bottomTrailing
         )
     }
-    
+
     var headerSection: some View {
         HStack {
             Text(verb.category.icon)
                 .font(.title2)
-            
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(verb.baseForm.capitalized)
                     .font(DesignSystem.Typography.title3)
                     .fontWeight(.bold)
-                
+
                 Text(verb.meaning)
                     .font(DesignSystem.Typography.caption)
                     .foregroundColor(DesignSystem.Colors.textSecondary)
             }
-            
+
             Spacer()
-            
+
             categoryBadge
         }
     }
-    
+
     var categoryBadge: some View {
-        Text(verb.category.rawValue)
+        Text(verb.category.displayName)
             .font(DesignSystem.Typography.caption2)
             .fontWeight(.medium)
             .padding(.horizontal, DesignSystem.Spacing.sm)
@@ -75,56 +76,45 @@ private extension VerbCard {
             .foregroundColor(verb.category.color)
             .clipShape(Capsule())
     }
-    
+
     var formsSection: some View {
         VStack(alignment: .leading, spacing: DesignSystem.Spacing.xs) {
-            verbForm(
-                label: "Present",
-                value: verb.thirdPerson ?? verb.baseForm
-            )
-            
-            verbForm(
-                label: "Past",
-                value: verb.pastSimple
-            )
-            
-            verbForm(
-                label: "Past Participle",
-                value: verb.pastParticiple
-            )
+            verbForm(label: "Present", value: verb.thirdPerson ?? verb.baseForm)
+            verbForm(label: "Past", value: verb.pastSimple)
+            verbForm(label: "Past Participle", value: verb.pastParticiple)
         }
         .padding(DesignSystem.Spacing.sm)
         .background(Color.white.opacity(0.5))
         .clipShape(RoundedRectangle(cornerRadius: DesignSystem.CornerRadius.sm))
     }
-    
+
     func verbForm(label: String, value: String) -> some View {
         HStack {
             Text(label + ":")
                 .font(DesignSystem.Typography.caption)
                 .foregroundColor(DesignSystem.Colors.textSecondary)
                 .frame(width: 90, alignment: .leading)
-            
+
             Text(value)
                 .font(DesignSystem.Typography.subheadline)
                 .fontWeight(.medium)
         }
     }
-    
+
     var progressSection: some View {
         HStack {
             ForEach(0..<3, id: \.self) { index in
-                Image(systemName: index < verb.userProgress.stars ? "star.fill" : "star")
+                Image(systemName: index < (progress?.stars ?? 0) ? "star.fill" : "star")
                     .foregroundColor(
-                        index < verb.userProgress.stars
+                        index < (progress?.stars ?? 0)
                             ? Color.yellow
                             : Color.gray.opacity(0.3)
                     )
                     .font(.caption)
             }
-            
+
             Spacer()
-            
+
             Image(systemName: "chevron.right")
                 .foregroundColor(DesignSystem.Colors.textSecondary)
                 .font(.caption)
@@ -143,8 +133,8 @@ private extension VerbCard {
                 pastParticiple: "gone",
                 category: .irregular,
                 meaning: "gitmek",
-                exampleSentence: "I go to school.",
-                userProgress: .practiced
+                level: .a1,
+                exampleSentence: "I go to school."
             )
         )
     }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct VerbListView: View {
-    @StateObject private var viewModel = VerbListViewModel()
+    @State private var viewModel = VerbListViewModel()
     @State private var isHeaderVisible: Bool = true
     
     var body: some View {
