@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
+    @Environment(\.modelContext) private var context
     
     var body: some View {
         NavigationStack {
@@ -29,6 +30,9 @@ struct HomeView: View {
                 }
             }
             .verbKitNavigationBar()
+            .onAppear {
+                viewModel.loadData(context: context)
+            }
         }
     }
 }

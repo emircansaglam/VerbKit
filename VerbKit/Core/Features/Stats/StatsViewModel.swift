@@ -6,55 +6,146 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @Observable
 final class StatsViewModel {
-    var currentStreak: Int = 5
-    var totalLearnedVerbs: Int = 45
-    var masteredVerbs: Int = 12
+    var currentStreak: Int = 0
+    var totalLearnedVerbs: Int = 0
+    var masteredVerbs: Int = 0
     var weeklyActivity: [DayActivity] = []
     var categoryProgress: [CategoryProgress] = []
     var achievements: [Achievement] = []
-    
-    init() {
-        loadMockData()
+
+    private let verbRepository: any VerbRepositoryProtocol
+    private let quizRepository: any QuizRepositoryProtocol
+    private let streakRepository: any StreakRepositoryProtocol
+
+    init(
+        verbRepository: any VerbRepositoryProtocol = VerbRepository(),
+        quizRepository: any QuizRepositoryProtocol = QuizRepository(),
+        streakRepository: any StreakRepositoryProtocol = StreakRepository()
+    ) {
+        self.verbRepository = verbRepository
+        self.quizRepository = quizRepository
+        self.streakRepository = streakRepository
     }
-    
-    private func loadMockData() {
-        loadWeeklyActivity()
-        loadCategoryProgress()
-        loadAchievements()
+
+    func loadData(context: ModelContext) {
+        currentStreak = streakRepository.currentStreak(context: context)
+        loadVerbProgress(context: context)
+        loadWeeklyActivity(context: context)
+        loadCategoryProgress(context: context)
+        loadAchievements(context: context)
     }
-    
-    private func loadWeeklyActivity() {
-        weeklyActivity = [
-            DayActivity(day: "Mon", verbCount: 5, isToday: false),
-            DayActivity(day: "Tue", verbCount: 8, isToday: false),
-            DayActivity(day: "Wed", verbCount: 0, isToday: false),
-            DayActivity(day: "Thu", verbCount: 3, isToday: false),
-            DayActivity(day: "Fri", verbCount: 10, isToday: false),
-            DayActivity(day: "Sat", verbCount: 6, isToday: false),
-            DayActivity(day: "Sun", verbCount: 0, isToday: true)
-        ]
+
+    // MARK: - Private
+
+    private func loadVerbProgress(context: ModelContext) {
+        let allVerbs = verbRepository.fetchVerbs(category: nil, level: nil, search: "")
+
+        totalLearnedVerbs = allVerbs.filter { verb in
+            guard let record = verbRepository.fetchProgress(verbId: verb.id, context: context) else { return false }
+            return record.totalAnswered > 0
+        }.count
+
+        masteredVerbs = allVerbs.filter { verb in
+            guard let record = verbRepository.fetchProgress(verbId: verb.id, context: context) else { return false }
+            return record.stars == 3
+        }.count
     }
-    
-    private func loadCategoryProgress() {
-        categoryProgress = [
-            CategoryProgress(name: "Regular", icon: "📚", color: .blue, progress: 0.80, learned: 80, total: 100),
-            CategoryProgress(name: "Irregular", icon: "⚡", color: .purple, progress: 0.40, learned: 48, total: 120),
-            CategoryProgress(name: "Phrasal", icon: "🔄", color: .orange, progress: 0.20, learned: 16, total: 80),
-            CategoryProgress(name: "Modal", icon: "🎭", color: .green, progress: 0.60, learned: 24, total: 40)
-        ]
+
+    private func loadWeeklyActivity(context: ModelContext) {
+        let sessions = quizRepository.fetchSessions(context: context)
+        let calendar = Calendar.current
+
+        weeklyActivity = (0..<7).reversed().map { daysAgo in
+            let date = calendar.date(byAdding: .day, value: -daysAgo, to: .now) ?? .now
+            let dayStart = calendar.startOfDay(for: date)
+            let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? date
+
+            let verbCount = sessions
+                .filter { $0.date >= dayStart && $0.date < dayEnd }
+                .reduce(0) { $0 + $1.totalQuestions }
+
+            let formatter = DateFormatter()
+            formatter.dateFormat = "EEE"
+
+            return DayActivity(
+                day: formatter.string(from: date),
+                verbCount: verbCount,
+                isToday: daysAgo == 0
+            )
+        }
     }
-    
-    private func loadAchievements() {
+
+    private func loadCategoryProgress(context: ModelContext) {
+        let allVerbs = verbRepository.fetchVerbs(category: nil, level: nil, search: "")
+
+        categoryProgress = VerbCategory.allCases.map { category in
+            let categoryVerbs = allVerbs.filter { $0.category == category }
+            let learnedCount = categoryVerbs.filter { verb in
+                guard let record = verbRepository.fetchProgress(verbId: verb.id, context: context) else { return false }
+                return record.totalAnswered > 0
+            }.count
+
+            let progress = categoryVerbs.isEmpty ? 0.0 : Double(learnedCount) / Double(categoryVerbs.count)
+
+            return CategoryProgress(
+                name: category.displayName,
+                icon: category.icon,
+                color: category.color,
+                progress: progress,
+                learned: learnedCount,
+                total: categoryVerbs.count
+            )
+        }
+    }
+
+    private func loadAchievements(context: ModelContext) {
         achievements = [
-            Achievement(id: "1", title: "First Verb", description: "Learn your first verb", icon: "🌱", isUnlocked: true),
-            Achievement(id: "2", title: "On Fire!", description: "7 day streak", icon: "🔥", isUnlocked: false),
-            Achievement(id: "3", title: "Bookworm", description: "Learn 50 verbs", icon: "📚", isUnlocked: false),
-            Achievement(id: "4", title: "First Master", description: "Master your first verb", icon: "⭐", isUnlocked: true),
-            Achievement(id: "5", title: "Irregular Hero", description: "Learn all irregular verbs", icon: "⚡", isUnlocked: false),
-            Achievement(id: "6", title: "Centurion", description: "Learn 100 verbs", icon: "🏆", isUnlocked: false)
+            Achievement(
+                id: "first_verb",
+                title: "First Verb",
+                description: "Learn your first verb",
+                icon: "🌱",
+                isUnlocked: totalLearnedVerbs >= 1
+            ),
+            Achievement(
+                id: "on_fire",
+                title: "On Fire!",
+                description: "7 day streak",
+                icon: "🔥",
+                isUnlocked: currentStreak >= 7
+            ),
+            Achievement(
+                id: "bookworm",
+                title: "Bookworm",
+                description: "Learn 50 verbs",
+                icon: "📚",
+                isUnlocked: totalLearnedVerbs >= 50
+            ),
+            Achievement(
+                id: "first_master",
+                title: "First Master",
+                description: "Master your first verb",
+                icon: "⭐",
+                isUnlocked: masteredVerbs >= 1
+            ),
+            Achievement(
+                id: "irregular_hero",
+                title: "Irregular Hero",
+                description: "Learn all irregular verbs",
+                icon: "⚡",
+                isUnlocked: categoryProgress.first { $0.name == "Irregular" }?.progress == 1.0
+            ),
+            Achievement(
+                id: "centurion",
+                title: "Centurion",
+                description: "Learn 100 verbs",
+                icon: "🏆",
+                isUnlocked: totalLearnedVerbs >= 100
+            )
         ]
     }
 }
