@@ -156,7 +156,7 @@ final class PracticeViewModel {
     // MARK: - Question Generation
     
     private func generateQuestions() -> [QuizQuestion] {
-        let allVerbs = MockVerbData.verbs
+        let allVerbs = VerbRepository().fetchVerbs(category: nil, level: nil, search: "")
         let selectedVerbs = Array(allVerbs.shuffled().prefix(10))
         
         return selectedVerbs.map { verb in

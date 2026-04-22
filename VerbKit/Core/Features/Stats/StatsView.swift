@@ -9,6 +9,7 @@ import SwiftUI
 
 struct StatsView: View {
     @State private var viewModel = StatsViewModel()
+    @Environment(\.modelContext) private var context
     
     var body: some View {
         NavigationStack {
@@ -29,6 +30,9 @@ struct StatsView: View {
                 }
             }
             .verbKitNavigationBar(title: "Stats")
+            .onAppear {
+                viewModel.loadData(context: context)
+            }
         }
     }
 }

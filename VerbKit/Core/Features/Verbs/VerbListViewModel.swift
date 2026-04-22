@@ -5,14 +5,8 @@
 //  Created by emircan.saglam on 11.02.2026.
 //
 
-//
-//  VerbListViewModel.swift
-//  VerbKit
-//
-//  Created by emircan.saglam on 11.02.2026.
-//
-
 import SwiftUI
+import SwiftData
 
 @Observable
 final class VerbListViewModel {
@@ -24,34 +18,32 @@ final class VerbListViewModel {
     var selectedCategory: VerbCategory? {
         didSet { applyFilters() }
     }
-    
-    init() {
-        loadMockVerbs()
+
+    private let repository: any VerbRepositoryProtocol
+
+    init(repository: any VerbRepositoryProtocol = VerbRepository()) {
+        self.repository = repository
+        loadVerbs()
     }
-    
+
+    func loadVerbs() {
+        verbs = repository.fetchVerbs(
+            category: selectedCategory,
+            level: nil,
+            search: searchText
+        )
+        filteredVerbs = verbs
+    }
+
     func selectCategory(_ category: VerbCategory?) {
         selectedCategory = category
     }
-    
+
     private func applyFilters() {
-        var filtered = verbs
-        
-        if let category = selectedCategory {
-            filtered = filtered.filter { $0.category == category }
-        }
-        
-        if !searchText.isEmpty {
-            filtered = filtered.filter { verb in
-                verb.baseForm.localizedCaseInsensitiveContains(searchText) ||
-                verb.meaning.localizedCaseInsensitiveContains(searchText)
-            }
-        }
-        
-        filteredVerbs = filtered
-    }
-    
-    private func loadMockVerbs() {
-        verbs = MockVerbData.verbs
-        filteredVerbs = verbs
+        filteredVerbs = repository.fetchVerbs(
+            category: selectedCategory,
+            level: nil,
+            search: searchText
+        )
     }
 }
